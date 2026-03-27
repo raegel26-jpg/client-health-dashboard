@@ -397,7 +397,7 @@ export default function ExecutiveDashboard() {
                 <BarChart layout="vertical" data={arrByCountry} margin={{ top: 0, right: 48, left: 0, bottom: 0 }}>
                   <XAxis type="number" tick={{ fontSize: 9, fill: "#9ca3af" }} axisLine={false} tickLine={false} tickFormatter={(v) => formatARR(v)} />
                   <YAxis type="category" dataKey="country" tick={{ fontSize: 10, fill: "#6b7280" }} axisLine={false} tickLine={false} width={30} interval={0} />
-                  <PieTooltip formatter={(v: number) => [formatARR(v), "ARR"]} contentStyle={{ fontSize: 11, padding: "3px 8px", borderRadius: 6, border: "1px solid #e5e7eb" }} />
+                  <PieTooltip formatter={(v) => [formatARR(v as number), "ARR"]} contentStyle={{ fontSize: 11, padding: "3px 8px", borderRadius: 6, border: "1px solid #e5e7eb" }} />
                   <Bar dataKey="arr" fill="#4b5563" radius={[0, 3, 3, 0]}>
                     <LabelList dataKey="arr" content={(props: any) => <BarTailLabel {...props} formatter={(v: any) => formatARR(v as number)} />} />
                   </Bar>
@@ -492,7 +492,7 @@ export default function ExecutiveDashboard() {
                 {healthDistribution.map(e => <Cell key={e.name} fill={e.color} />)}
               </Pie>
               <PieTooltip
-                formatter={(value: number) => [`${Math.round((value / clients.length) * 100)}%`]}
+                formatter={(value) => [`${Math.round(((value as number) / clients.length) * 100)}%`]}
                 contentStyle={{ fontSize: 11, padding: "3px 8px", borderRadius: 6, border: "1px solid #e5e7eb" }}
               />
             </PieChart>
@@ -518,7 +518,7 @@ export default function ExecutiveDashboard() {
                 <BarChart layout="vertical" data={healthByCountry} margin={{ top: 0, right: 32, left: 0, bottom: 0 }}>
                   <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} tick={{ fontSize: 9, fill: "#9ca3af" }} axisLine={false} tickLine={false} />
                   <YAxis type="category" dataKey="country" tick={{ fontSize: 10, fill: "#6b7280" }} axisLine={false} tickLine={false} width={30} interval={0} />
-                  <PieTooltip formatter={(v: number, name: string) => [`${v}%`, name]} contentStyle={{ fontSize: 11, padding: "3px 8px", borderRadius: 6, border: "1px solid #e5e7eb" }} />
+                  <PieTooltip formatter={(v, name) => [`${v}%`, name as string]} contentStyle={{ fontSize: 11, padding: "3px 8px", borderRadius: 6, border: "1px solid #e5e7eb" }} />
                   <Bar dataKey="Healthy"  stackId="a" fill={C.mint}>
                     <LabelList dataKey="Healthy" content={(props: any) => <HealthDistEndLabel {...props} />} />
                   </Bar>
