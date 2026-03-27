@@ -360,7 +360,7 @@ export default function ExecutiveDashboard() {
 
           <div>
             <p className="text-xs text-gray-500 font-medium mb-1">Total ARR Managed</p>
-            <p className="text-5xl font-bold text-gray-900 tracking-tight">{formatARR(totalARR)}</p>
+            <p className="text-3xl sm:text-5xl font-bold text-gray-900 tracking-tight">{formatARR(totalARR)}</p>
             <p className="text-xs text-gray-400 mt-1">{clients.length} active clients</p>
           </div>
 
@@ -373,7 +373,7 @@ export default function ExecutiveDashboard() {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-100">
+          <div className="grid grid-cols-3 gap-2 sm:gap-4 pt-4 border-t border-gray-100">
             <div>
               <p className="text-xs text-gray-500">ARR Secure</p>
               <p className="text-lg font-bold" style={{ color: C.mint }}>{formatARR(arrHealthy)}</p>
@@ -468,7 +468,7 @@ export default function ExecutiveDashboard() {
         <Card>
           <SectionHeader icon={<HealthIcon />} label="Client Health" color={C.teal} />
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-2 sm:gap-4">
             <div>
               <p className="text-xs text-gray-500 font-medium mb-1">Health Score</p>
               <p className="text-3xl font-bold text-gray-900 tracking-tight">{avgScore}</p>
@@ -549,7 +549,7 @@ export default function ExecutiveDashboard() {
             }
           />
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
             <div className="rounded-lg p-3" style={{ background: "#f0fdf8" }}>
               <p className="text-xs font-medium mb-0.5" style={{ color: C.teal }}>Healthy</p>
               <div className="flex items-baseline gap-1.5">
@@ -608,7 +608,7 @@ export default function ExecutiveDashboard() {
             }
           />
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
             <div className="rounded-lg p-3 bg-red-50">
               <p className="text-xs font-medium text-red-600">At Risk</p>
               <div className="flex items-baseline gap-1.5 mt-0.5">
@@ -667,7 +667,7 @@ export default function ExecutiveDashboard() {
         {upcomingRenewals.length === 0 ? (
           <p className="text-sm text-gray-400">No renewals in the next 90 days.</p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
             {upcomingRenewals.slice(0, 8).map(client => {
               const daysUntil = Math.ceil(
                 (new Date(client.renewalDate).getTime() - new Date("2026-03-27").getTime()) / 86400000
@@ -687,9 +687,9 @@ export default function ExecutiveDashboard() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <MeetingStatusBadge status={client.renewalMeetingStatus} />
+                    <span className="hidden sm:block"><MeetingStatusBadge status={client.renewalMeetingStatus} /></span>
                     <StatusBadge status={client.riskStatus} />
-                    <div className="text-right w-16">
+                    <div className="text-right w-14 sm:w-16">
                       <p className="text-sm font-semibold" style={{ color: urgency }}>{daysUntil}d</p>
                       <p className="text-xs text-gray-400">
                         {new Date(client.renewalDate).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}

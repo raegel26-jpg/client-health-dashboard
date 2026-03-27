@@ -137,7 +137,7 @@ export default function ClientProfile({ params }: { params: Promise<{ id: string
               </svg>
               <span>Account Manager: <span className="font-medium text-gray-600">{client.accountManager}</span></span>
             </div>
-            <div className="flex items-center gap-4 mt-1">
+            <div className="flex flex-wrap items-center gap-4 mt-1">
               <HealthScoreRing score={client.healthScore} size={88} />
               <div className="rounded-lg border border-gray-100 bg-gray-50/60 px-4 py-3 space-y-2 text-sm">
                 <div className="flex flex-col">
@@ -247,7 +247,7 @@ export default function ClientProfile({ params }: { params: Promise<{ id: string
               <span className="text-2xl font-bold text-gray-900 ml-1">{client.npsScore}</span>
               <span className="text-xs text-gray-400">/ 10 current</span>
             </div>
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               {/* Left: line chart */}
               <div>
                 <ResponsiveContainer width="100%" height={130}>

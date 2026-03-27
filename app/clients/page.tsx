@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, Suspense } from "react";
+import { useState, useMemo, useEffect, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { clients, formatARR, RiskStatus, Priority, Client } from "@/data/clients";
 import StatusBadge, { PriorityBadge } from "@/components/StatusBadge";
@@ -38,43 +38,116 @@ function TrendArrow({ trend }: { trend: "up" | "down" | "flat" }) {
   return <span className="text-xs text-gray-300">→</span>;
 }
 
-const selectClass = "border border-gray-200 rounded-lg pl-3 pr-8 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-offset-0 appearance-none";
+interface MultiSelectProps {
+  label: string;
+  options: string[];
+  selected: string[];
+  onChange: (vals: string[]) => void;
+  formatLabel?: (val: string) => string;
+}
+
+function MultiSelect({ label, options, selected, onChange, formatLabel }: MultiSelectProps) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  function toggle(val: string) {
+    if (selected.includes(val)) onChange(selected.filter(v => v !== val));
+    else onChange([...selected, val]);
+  }
+
+  const displayLabel =
+    selected.length === 0 ? label :
+    selected.length === 1 ? (formatLabel ? formatLabel(selected[0]) : selected[0]) :
+    `${selected.length} selected`;
+
+  const isActive = selected.length > 0;
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className={`flex items-center gap-1.5 border rounded-lg pl-3 pr-2.5 py-2 text-sm focus:outline-none whitespace-nowrap ${
+          isActive
+            ? "border-[#028090] bg-[#f0faf8] text-[#028090] font-medium"
+            : "border-gray-200 bg-white text-gray-700"
+        }`}
+      >
+        {displayLabel}
+        <span className="text-xs opacity-60">{open ? "▴" : "▾"}</span>
+      </button>
+      {open && (
+        <div className="absolute z-50 top-full mt-1 left-0 bg-white border border-gray-200 rounded-lg shadow-lg min-w-[170px] py-1">
+          {options.map(opt => (
+            <label
+              key={opt}
+              className="flex items-center gap-2.5 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer"
+            >
+              <input
+                type="checkbox"
+                checked={selected.includes(opt)}
+                onChange={() => toggle(opt)}
+                className="accent-[#028090] w-3.5 h-3.5 flex-shrink-0"
+              />
+              {formatLabel ? formatLabel(opt) : opt}
+            </label>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const STATUS_OPTS = ["healthy", "warning", "at-risk", "churned"];
+const STATUS_LABELS: Record<string, string> = { healthy: "Healthy", warning: "Warning", "at-risk": "At Risk", churned: "Churned" };
+const PRIORITY_OPTS = ["High", "Medium", "Low"];
 
 function ClientsTable() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [search,          setSearch]          = useState("");
-  const [filterStatus,    setFilterStatus]    = useState<RiskStatus | "all">("all");
-  const [filterPriority,  setFilterPriority]  = useState<Priority | "all">("all");
-  const [filterIndustry,  setFilterIndustry]  = useState("all");
-  const [filterCountry,   setFilterCountry]   = useState("all");
-  const [filterAM,        setFilterAM]        = useState("all");
-  const [sortKey,         setSortKey]         = useState<SortKey>("healthScore");
-  const [sortDir,         setSortDir]         = useState<SortDir>("asc");
+  const [search,         setSearch]         = useState("");
+  const [filterStatus,   setFilterStatus]   = useState<string[]>([]);
+  const [filterPriority, setFilterPriority] = useState<string[]>([]);
+  const [filterIndustry, setFilterIndustry] = useState<string[]>([]);
+  const [filterCountry,  setFilterCountry]  = useState<string[]>([]);
+  const [filterAM,       setFilterAM]       = useState<string[]>([]);
+  const [sortKey,        setSortKey]        = useState<SortKey>("healthScore");
+  const [sortDir,        setSortDir]        = useState<SortDir>("asc");
 
   useEffect(() => {
     const f        = searchParams.get("filter");
     const industry = searchParams.get("industry");
     const country  = searchParams.get("country");
     if (f === "at-risk" || f === "healthy" || f === "churned" || f === "warning")
-      setFilterStatus(f);
-    if (industry) setFilterIndustry(industry);
-    if (country)  setFilterCountry(country);
+      setFilterStatus([f]);
+    if (industry) setFilterIndustry([industry]);
+    if (country)  setFilterCountry([country]);
   }, [searchParams]);
 
   const industries = useMemo(
-    () => ["all", ...Array.from(new Set(clients.map(c => c.industry))).sort()],
+    () => Array.from(new Set(clients.map(c => c.industry))).sort(),
+    []
+  );
+  const countries = useMemo(
+    () => Array.from(new Set(clients.map(c => c.country))).sort(),
     []
   );
 
   const sorted = useMemo(() => {
     return [...clients]
       .filter(c => {
-        if (filterStatus   !== "all" && c.riskStatus !== filterStatus)   return false;
-        if (filterPriority !== "all" && c.priority   !== filterPriority) return false;
-        if (filterIndustry !== "all" && c.industry   !== filterIndustry) return false;
-        if (filterCountry  !== "all" && c.country    !== filterCountry)  return false;
-        if (filterAM       !== "all" && c.accountManager !== filterAM)   return false;
+        if (filterStatus.length   > 0 && !filterStatus.includes(c.riskStatus))     return false;
+        if (filterPriority.length > 0 && !filterPriority.includes(c.priority))     return false;
+        if (filterIndustry.length > 0 && !filterIndustry.includes(c.industry))     return false;
+        if (filterCountry.length  > 0 && !filterCountry.includes(c.country))       return false;
+        if (filterAM.length       > 0 && !filterAM.includes(c.accountManager))     return false;
         if (search && !c.name.toLowerCase().includes(search.toLowerCase())) return false;
         return true;
       })
@@ -98,7 +171,7 @@ function ClientsTable() {
   }
 
   const thClass = "text-left text-xs font-medium text-gray-400 px-4 py-3 cursor-pointer select-none hover:text-gray-600 whitespace-nowrap";
-  const hasFilters = filterStatus !== "all" || filterPriority !== "all" || filterIndustry !== "all" || filterCountry !== "all" || filterAM !== "all" || search;
+  const hasFilters = filterStatus.length > 0 || filterPriority.length > 0 || filterIndustry.length > 0 || filterCountry.length > 0 || filterAM.length > 0 || !!search;
 
   return (
     <div className="space-y-6">
@@ -114,45 +187,42 @@ function ClientsTable() {
           placeholder="Search clients..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none bg-white w-52"
+          className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none bg-white w-full sm:w-52"
         />
-        <div className="relative">
-          <select value={filterStatus} onChange={e => setFilterStatus(e.target.value as RiskStatus | "all")} className={selectClass}>
-            <option value="all">All Statuses</option>
-            <option value="healthy">Healthy</option>
-            <option value="warning">Warning</option>
-            <option value="at-risk">At Risk</option>
-            <option value="churned">Churned</option>
-          </select>
-          <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs">▾</span>
-        </div>
-        <div className="relative">
-          <select value={filterPriority} onChange={e => setFilterPriority(e.target.value as Priority | "all")} className={selectClass}>
-            <option value="all">All Priorities</option>
-            <option value="High">High</option>
-            <option value="Medium">Medium</option>
-            <option value="Low">Low</option>
-          </select>
-          <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs">▾</span>
-        </div>
-        <div className="relative">
-          <select value={filterIndustry} onChange={e => setFilterIndustry(e.target.value)} className={selectClass}>
-            {industries.map(ind => (
-              <option key={ind} value={ind}>{ind === "all" ? "All Industries" : ind}</option>
-            ))}
-          </select>
-          <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs">▾</span>
-        </div>
-        <div className="relative">
-          <select value={filterAM} onChange={e => setFilterAM(e.target.value)} className={selectClass}>
-            <option value="all">All Account Managers</option>
-            {ACCOUNT_MANAGERS.map(am => <option key={am} value={am}>{am}</option>)}
-          </select>
-          <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs">▾</span>
-        </div>
+        <MultiSelect
+          label="All Statuses"
+          options={STATUS_OPTS}
+          selected={filterStatus}
+          onChange={setFilterStatus}
+          formatLabel={v => STATUS_LABELS[v] ?? v}
+        />
+        <MultiSelect
+          label="All Priorities"
+          options={PRIORITY_OPTS}
+          selected={filterPriority}
+          onChange={setFilterPriority}
+        />
+        <MultiSelect
+          label="All Industries"
+          options={industries}
+          selected={filterIndustry}
+          onChange={setFilterIndustry}
+        />
+        <MultiSelect
+          label="All Countries"
+          options={countries}
+          selected={filterCountry}
+          onChange={setFilterCountry}
+        />
+        <MultiSelect
+          label="All Account Managers"
+          options={ACCOUNT_MANAGERS}
+          selected={filterAM}
+          onChange={setFilterAM}
+        />
         {hasFilters && (
           <button
-            onClick={() => { setFilterStatus("all"); setFilterPriority("all"); setFilterIndustry("all"); setFilterCountry("all"); setFilterAM("all"); setSearch(""); }}
+            onClick={() => { setFilterStatus([]); setFilterPriority([]); setFilterIndustry([]); setFilterCountry([]); setFilterAM([]); setSearch(""); }}
             className="text-xs text-gray-500 hover:text-gray-700 underline"
           >
             Clear filters
@@ -171,6 +241,7 @@ function ClientsTable() {
                 <th className={thClass} onClick={() => handleSort("name")}>Client <SortIcon col="name" /></th>
                 <th className="text-left text-xs font-medium text-gray-400 px-4 py-3 whitespace-nowrap">Priority</th>
                 <th className="text-left text-xs font-medium text-gray-400 px-4 py-3 whitespace-nowrap">Industry</th>
+                <th className="text-left text-xs font-medium text-gray-400 px-4 py-3 whitespace-nowrap">Country</th>
                 <th className={thClass} onClick={() => handleSort("arr")}>ARR <SortIcon col="arr" /></th>
                 <th className={thClass} onClick={() => handleSort("healthScore")}>Health <SortIcon col="healthScore" /></th>
                 <th className="text-left text-xs font-medium text-gray-400 px-4 py-3 whitespace-nowrap">Status</th>
@@ -181,7 +252,7 @@ function ClientsTable() {
             <tbody>
               {sorted.length === 0 && (
                 <tr>
-                  <td colSpan={9} className="text-center text-gray-400 py-12 text-sm">
+                  <td colSpan={10} className="text-center text-gray-400 py-12 text-sm">
                     No clients match your filters.
                   </td>
                 </tr>
@@ -194,10 +265,8 @@ function ClientsTable() {
                     className={`hover:bg-gray-50/80 transition-colors cursor-pointer ${i < sorted.length - 1 ? "border-b border-gray-50" : ""}`}
                     onClick={() => router.push(`/clients/${client.id}`)}
                   >
-                    {/* Status accent bar */}
                     <td className="p-0 w-0.5" style={{ background: STATUS_COLORS[client.riskStatus] }} />
 
-                    {/* Client name + avatar */}
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <div
@@ -215,9 +284,9 @@ function ClientsTable() {
 
                     <td className="px-4 py-3"><PriorityBadge priority={client.priority} /></td>
                     <td className="px-4 py-3 text-gray-600">{client.industry}</td>
+                    <td className="px-4 py-3 text-gray-600">{client.country}</td>
                     <td className="px-4 py-3 font-medium text-gray-900">{formatARR(client.arr)}</td>
 
-                    {/* Health score + mini bar + trend */}
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <span className="font-semibold" style={{ color: STATUS_COLORS[client.riskStatus] }}>

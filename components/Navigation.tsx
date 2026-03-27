@@ -16,17 +16,17 @@ export default function Navigation() {
 
   return (
     <header className="bg-white border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="flex items-center justify-between h-16">
-          <div className="flex items-center gap-2">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ color: "#05668d" }}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="flex items-center justify-between h-14 sm:h-16">
+          <div className="flex items-center gap-2 min-w-0">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ color: "#05668d" }} className="flex-shrink-0">
               <rect x="2" y="2" width="20" height="20" rx="5" fill="#05668d" />
               <path d="M7 15l3-4 3 3 3-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-            <span className="text-sm font-semibold text-gray-900 tracking-tight">
+            <span className="text-sm font-semibold text-gray-900 tracking-tight truncate">
               Client Intelligence Hub
             </span>
-            <span className="text-[10px] text-gray-300 ml-2">A project by @raegelnotrachel</span>
+            <span className="hidden sm:inline text-[10px] text-gray-300 ml-2 flex-shrink-0">A project by @raegelnotrachel</span>
           </div>
           <nav className="flex items-center gap-1">
             {tabs.map((tab) => (
