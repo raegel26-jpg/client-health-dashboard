@@ -635,16 +635,16 @@ export default function ExecutiveDashboard() {
                   className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors"
                   style={{ borderLeft: "3px solid #ef4444" }}
                 >
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
                     <ClientAvatar name={client.name} />
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">{client.name}</p>
-                      <p className="text-xs text-gray-400 truncate max-w-[260px]">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">{client.name}</p>
+                      <p className="text-xs text-gray-400 truncate">
                         {client.riskFlags[0] ?? "At risk"}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 flex-shrink-0">
+                  <div className="flex items-center gap-3 flex-shrink-0 ml-2">
                     <PriorityBadge priority={client.priority} />
                     <span className="text-sm font-semibold text-gray-700">{formatARR(client.arr)}</span>
                   </div>
